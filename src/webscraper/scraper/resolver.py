@@ -1,11 +1,11 @@
-from webscraper.sites import site1, site2, site3
+from webscraper.sites import asuracomic, asurascanz, roliascan    
 
-def get_parser_and_format_for_url(url: str):
+def resolve_site(url: str):
     if "asurascanz" in url:
-        return (site1.parse, "webp")
-    # elif "site2.com" in url:
-    #     return site2.parse
-    # elif "site3.com" in url:
-    #     return site3.parse
+        return (asurascanz.parse_chapter,"webp", False)
+    elif "asuracomic" in url:
+        return (asuracomic.parse_chapter,"webp", False)
+    elif "roliascan" in url:
+        return (roliascan.parse_chapter, "webp", True)
     else:
         raise ValueError("Unsupported site")
