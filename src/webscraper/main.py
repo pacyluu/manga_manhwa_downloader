@@ -14,7 +14,5 @@ def main():
     raw_images = fetch_and_write_img(images)
     save_pdf(raw_images, filename, format)
     
-
-
 if __name__ == "__main__":
     main()
