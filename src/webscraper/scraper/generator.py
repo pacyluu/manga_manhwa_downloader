@@ -3,10 +3,10 @@ from io import BytesIO
 
 from webscraper.config import OUTPUT_DIR
 
-def save_pdf(raw_images, filename: str, format: str):
+def save_pdf(raw_images, chapter: int, format: str):
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    pdf_path = OUTPUT_DIR / filename
+    pdf_path = OUTPUT_DIR / chapter
 
     if format == "webp":
         images = [Image.open(BytesIO(b)).convert("RGB") for b in raw_images]

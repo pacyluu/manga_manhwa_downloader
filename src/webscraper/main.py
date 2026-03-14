@@ -1,7 +1,7 @@
 from scrapling.engines.toolbelt.custom import Response
-from webscraper.scraper.fetch import fetch_chapter
-from webscraper.scraper.fetch import fetch_and_write_img
-from webscraper.scraper.resolver import resolve_site
+from webscraper.scraper.fetch import fetch_url
+from webscraper.scraper.fetch import fetch_imgs
+from webscraper.scraper.resolver import resolve_site, resolve_search, resolve_chapter
 from webscraper.scraper.generator import save_pdf
 
 def choose_site() -> str:
@@ -16,7 +16,7 @@ def choose_site() -> str:
         print(f"{key}. {value}")
 
     while True:
-        choice = input("Enter 1, 2, or 3: ").strip()
+        choice = input("Enter number: ").strip()
         if choice in sites:
             return sites[choice]
         print("Invalid choice. Please enter 1, 2, or 3.")
@@ -30,49 +30,68 @@ def get_user_text() -> str:
         print("Input cannot be empty.")
 
 def choose_result(results):
-    print("\nSearch results:")
-    for i, result in enumerate(results, start=1):
-        print(f"{i}. {result['title']}")
+    if not results:
+        print("No results found.")
+        return None
+
+    for i, (title, _) in enumerate(results, start=1):
+        print(f"{i}. {title}")
 
     while True:
-        choice = input(f"Select a result (1-{len(results)}): ").strip()
+        choice = input("Enter the number of the result you want: ").strip()
 
         if not choice.isdigit():
-            print("Please enter a number.")
+            print("Please enter a valid number.")
             continue
 
-        index = int(choice)
-        if 1 <= index <= len(results):
-            return results[index - 1]
+        choice = int(choice)
 
-        print("Invalid selection.")
+        if 1 <= choice <= len(results):
+            return results[choice - 1][1]
+
+        print(f"Please enter a number between 1 and {len(results)}.")
+
+def choose_range(limit):
+    while True:
+        start = input(f"Enter the starting chapter (1-{limit}): ").strip()
+        end = input(f"Enter the ending chapter ({start if start.isdigit() else '1'}-{limit}): ").strip()
+
+        if not start.isdigit() or not end.isdigit():
+            print("Please enter valid integers.")
+            continue
+
+        start = int(start)
+        end = int(end)
+
+        if not (1 <= start <= limit and 1 <= end <= limit):
+            print(f"Both chapter numbers must be between 1 and {limit}.")
+            continue
+
+        if start > end:
+            print("The starting chapter must be less than or equal to the ending chapter.")
+            continue
+
+        return (start, end)
 
 def main():
 
     site = choose_site()
     query = get_user_text()
 
-    filename = "eatbeforeyougochapter1.pdf"
-    search_fn, chapter_parser_fn, format, captchas = resolve_site(site)
+    search_parser_fn, range_parser_fn, chapter_parser_fn, format, captchas = resolve_site(site)  
+    search_page = resolve_search(site, query)
+    search_results =  search_parser_fn(fetch_url(search_page))                             #List of search results
+    selected = choose_result(search_results)                                               #Choose one of the results
+    range = range_parser_fn(fetch_url(selected))                                           #Fetch the page of the selected title
+    
+    start, end = choose_range(range)
 
-    results =  search_fn(query)
-
-    if not results:
-        print("No results found.")
-        return
-
-    selected = choose_result(results)
-
-    # page = fetch(url)
-    images = chapter_parser_fn(page)
-    raw_images = fetch_and_write_img(images, captchas)
-    save_pdf(raw_images, filename, format)
+    for i in range(start, end+1):
+        chapter_page = resolve_chapter(site, i, selected)
+        images = chapter_parser_fn(chapter_page)
+        raw_images = fetch_imgs(images, captchas)
+        save_pdf(raw_images, i, format)
+    
     
 if __name__ == "__main__":
     main()
-
-# results = [
-#     {"title": "Percy Jackson and the Olympians", "url": "https://..."},
-#     {"title": "Percy Jackson: Sea of Monsters", "url": "https://..."},
-#     {"title": "Percy Jackson: The Titan's Curse", "url": "https://..."},
-# ]

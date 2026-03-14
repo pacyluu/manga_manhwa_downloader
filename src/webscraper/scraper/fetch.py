@@ -2,14 +2,14 @@ from scrapling.engines.toolbelt.custom import Response
 from scrapling.fetchers import StealthyFetcher
 
 #return the response.text
-def fetch_chapter(url: str) -> Response:
+def fetch_url(url: str) -> Response:
     page = StealthyFetcher.fetch(url, solve_cloudflare=True)
     if page.status == 200:
         return page
 
     raise ValueError(f"Failed to fetch {url}: {page.status}")
 
-def fetch_and_write_img(images, captchas) :
+def fetch_imgs(images, captchas) :
     image_list = []
     for img in images:
         if captchas:
