@@ -1,16 +1,28 @@
 import logging
-from scrapling.engines.toolbelt.custom import Response
+from pathlib import Path
+
 from scrapling.fetchers import StealthySession
-from webscraper.scraper.fetch import fetch_url
-from webscraper.scraper.fetch import fetch_imgs
-from webscraper.scraper.resolver import resolve_site, resolve_search, resolve_chapter
-from webscraper.scraper.generator import save_pdf
+from manga_downloader.config import OUTPUT_DIR
+from manga_downloader.scraper.fetch import fetch_url, fetch_imgs
+from manga_downloader.scraper.resolver import (
+    resolve_site,
+    resolve_search,
+    resolve_chapter,
+)
+from manga_downloader.scraper.generator import save_pdf
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt, IntPrompt
 from rich.progress import Progress
 
 console = Console()
+
+
+def sanitize_folder_name(name: str) -> str:
+    invalid_chars = '<>:"/\\|?*'
+    cleaned = "".join("_" if ch in invalid_chars else ch for ch in name).strip()
+    return cleaned or "download"
+
 
 def choose_site() -> str:
     sites = {
@@ -48,11 +60,10 @@ def get_user_text() -> str:
         console.print("[red]Search text cannot be empty.[/red]")
 
 
-
 def choose_result(results):
     if not results:
         console.print("[red]No results found.[/red]")
-        return None
+        return None, None
 
     table = Table(title="Search Results")
     table.add_column("#", justify="right")
@@ -68,7 +79,7 @@ def choose_result(results):
         if 1 <= choice <= len(results):
             title, url = results[choice - 1]
             console.print(f"[green]Selected series:[/green] {title}\n")
-            return url
+            return title, url
         console.print(f"[red]Please enter a number between 1 and {len(results)}.[/red]")
 
 
@@ -97,29 +108,85 @@ def choose_range(limit):
         return start, end
 
 
+def choose_output_folder(output_dir: Path, default_name: str) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    folders = sorted([p for p in output_dir.iterdir() if p.is_dir()], key=lambda p: p.name.lower())
+    default_folder_name = sanitize_folder_name(default_name)
+
+    table = Table(title="Choose Output Folder")
+    table.add_column("#", justify="right")
+    table.add_column("Option", style="cyan")
+
+    option_map = {}
+    option_num = 1
+
+    table.add_row(str(option_num), f"Use default folder: {default_folder_name}")
+    option_map[option_num] = ("default", default_folder_name)
+    option_num += 1
+
+    for folder in folders:
+        table.add_row(str(option_num), f"Use existing folder: {folder.name}")
+        option_map[option_num] = ("existing", folder)
+        option_num += 1
+
+    table.add_row(str(option_num), "Create a new folder")
+    option_map[option_num] = ("new", None)
+
+    console.print(table)
+
+    while True:
+        choice = IntPrompt.ask("Enter folder option")
+        if choice not in option_map:
+            console.print("[red]Invalid selection.[/red]")
+            continue
+
+        option_type, value = option_map[choice]
+
+        if option_type == "default":
+            selected_folder = output_dir / value
+            selected_folder.mkdir(parents=True, exist_ok=True)
+            console.print(f"[green]Using folder:[/green] {selected_folder.name}\n")
+            return selected_folder
+
+        if option_type == "existing":
+            console.print(f"[green]Using folder:[/green] {value.name}\n")
+            return value
+
+        folder_name = Prompt.ask("Enter new folder name").strip()
+        folder_name = sanitize_folder_name(folder_name)
+        selected_folder = output_dir / folder_name
+        selected_folder.mkdir(parents=True, exist_ok=True)
+        console.print(f"[green]Created and using folder:[/green] {selected_folder.name}\n")
+        return selected_folder
+
+
 def main():
     logging.getLogger("scrapling").disabled = True
 
     site = choose_site()
     query = get_user_text()
 
-
-
-    search_parser_fn, limit_parser_fn, chapter_parser_fn, format = resolve_site(site)  
+    search_parser_fn, limit_parser_fn, chapter_parser_fn = resolve_site(site)
     search_page = resolve_search(site, query)
 
     with StealthySession(
-       headless=True,
+        headless=True,
         real_chrome=True,
         block_webrtc=True,
         solve_cloudflare=True,
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
     ) as session:
 
-        search_results =  search_parser_fn(fetch_url(session, search_page))                             #List of search results
-        selected_url = choose_result(search_results)                                               #Choose one of the results
-        limit = limit_parser_fn(fetch_url(session, selected_url))                                           #Fetch the page of the selected title
-        
+        search_results = search_parser_fn(fetch_url(session, search_page))
+        selected_title, selected_url = choose_result(search_results)
+
+        if not selected_url:
+            return
+
+        output_folder = choose_output_folder(OUTPUT_DIR, selected_title)
+
+        limit = limit_parser_fn(fetch_url(session, selected_url))
         start, end = choose_range(limit)
 
         with Progress() as progress:
@@ -129,9 +196,10 @@ def main():
                 chapter_page = resolve_chapter(site, i, selected_url)
                 images = chapter_parser_fn(fetch_url(session, chapter_page))
                 raw_images = fetch_imgs(session, images)
-                save_pdf(raw_images, i, format)
+                save_pdf(raw_images, i, output_folder)
 
                 progress.update(task, advance=1)
-    
+
+
 if __name__ == "__main__":
     main()

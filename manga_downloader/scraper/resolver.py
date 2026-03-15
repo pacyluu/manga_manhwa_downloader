@@ -1,13 +1,13 @@
-from webscraper.sites import site1, site2, site3
+from manga_downloader.sites import site1, site2, site3
    
 
 def resolve_site(site: str):
     if "asurascanz" in site:
-        return (site1.parse_search_page, site1.parse_limit, site1.parse_chapter,"webp")
+        return (site1.parse_search_page, site1.parse_limit, site1.parse_chapter)
     elif "asuracomic" in site:
-        return (site2.parse_search_page, site2.parse_limit, site2.parse_chapter,"webp")
+        return (site2.parse_search_page, site2.parse_limit, site2.parse_chapter)
     elif "roliascan" in site:
-        return (site3.parse_chapter, "webp", True)
+        return (site3.parse_chapter)
     else:
         raise ValueError("Unsupported site")
 

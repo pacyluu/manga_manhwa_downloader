@@ -1,13 +1,6 @@
 # https://asuracomic.net/
 from scrapling.engines.toolbelt.custom import Response
 
-# headers = {
-#     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
-#     "Referer": "https://asuracomic.net/",
-#     "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-#     "DNT": "1",
-# }
-
 def parse_search_page(page: Response):
     links = page.css("div.grid.grid-cols-2.sm\\:grid-cols-2.md\\:grid-cols-5.gap-3.p-4 a")
     urls = [link.attrib['href'] for link in links]

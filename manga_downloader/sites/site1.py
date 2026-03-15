@@ -1,7 +1,6 @@
 # https://asurascanz.com/
 import re
 from scrapling.engines.toolbelt.custom import Response
-# from webscraper.models.document import Document
 
 def parse_search_page(page: Response):
     links = page.css("div.bsx a")
