@@ -1,4 +1,5 @@
 # https://asurascanz.com/
+import re
 from scrapling.engines.toolbelt.custom import Response
 # from webscraper.models.document import Document
 
@@ -11,10 +12,12 @@ def parse_search_page(page: Response):
 
     return list(zip(titles, urls))
 
-def parse_range(page: Response):
+def parse_limit(page: Response):
     links = page.css("span.epcur.epcurlast")
-    result = [link.text for link in links]
-    return result[1]
+    result = links[0].text
+    print(result)
+    match = re.search("\d+", str(result))
+    return int(match.group())
 
 def parse_chapter(page: Response):
     links = page.css('p img[src*=image]')
