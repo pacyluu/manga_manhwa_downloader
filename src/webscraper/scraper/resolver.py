@@ -3,9 +3,9 @@ from webscraper.sites import site1, site2, site3
 
 def resolve_site(site: str):
     if "asurascanz" in site:
-        return (site1.parse_search_page, site1.parse_limit, site1.parse_chapter,"webp", False, False)
+        return (site1.parse_search_page, site1.parse_limit, site1.parse_chapter,"webp")
     elif "asuracomic" in site:
-        return (site2.parse_search_page, site2.parse_limit, site2.parse_chapter,"webp", True, False)
+        return (site2.parse_search_page, site2.parse_limit, site2.parse_chapter,"webp")
     elif "roliascan" in site:
         return (site3.parse_chapter, "webp", True)
     else:

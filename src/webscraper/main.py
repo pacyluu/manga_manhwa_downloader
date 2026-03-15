@@ -1,5 +1,6 @@
 import logging
 from scrapling.engines.toolbelt.custom import Response
+from scrapling.fetchers import StealthySession
 from webscraper.scraper.fetch import fetch_url
 from webscraper.scraper.fetch import fetch_imgs
 from webscraper.scraper.resolver import resolve_site, resolve_search, resolve_chapter
@@ -102,26 +103,35 @@ def main():
     site = choose_site()
     query = get_user_text()
 
-    search_parser_fn, limit_parser_fn, chapter_parser_fn, format, captchas0, captchas1 = resolve_site(site)  
+
+
+    search_parser_fn, limit_parser_fn, chapter_parser_fn, format = resolve_site(site)  
     search_page = resolve_search(site, query)
-    search_results =  search_parser_fn(fetch_url(search_page, captchas0))                             #List of search results
-    selected_url = choose_result(search_results)                                               #Choose one of the results
-    limit = limit_parser_fn(fetch_url(selected_url, captchas0))                                           #Fetch the page of the selected title
-    
-    start, end = choose_range(limit)
 
-    with Progress() as progress:
-        task = progress.add_task("Downloading chapters...", total=end - start + 1)
+    with StealthySession(
+       headless=True,
+        real_chrome=True,
+        block_webrtc=True,
+        solve_cloudflare=True,
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+    ) as session:
 
-        for i in range(start, end + 1):
-            chapter_page = resolve_chapter(site, i, selected_url)
-            images = chapter_parser_fn(fetch_url(chapter_page, captchas0))
-            print(images)
-            raw_images = fetch_imgs(images, captchas1)
-            print(len(raw_images))
-            save_pdf(raw_images, i, format)
+        search_results =  search_parser_fn(fetch_url(session, search_page))                             #List of search results
+        selected_url = choose_result(search_results)                                               #Choose one of the results
+        limit = limit_parser_fn(fetch_url(session, selected_url))                                           #Fetch the page of the selected title
+        
+        start, end = choose_range(limit)
 
-            progress.update(task, advance=1)
+        with Progress() as progress:
+            task = progress.add_task("Downloading chapters...", total=end - start + 1)
+
+            for i in range(start, end + 1):
+                chapter_page = resolve_chapter(site, i, selected_url)
+                images = chapter_parser_fn(fetch_url(session, chapter_page))
+                raw_images = fetch_imgs(session, images)
+                save_pdf(raw_images, i, format)
+
+                progress.update(task, advance=1)
     
 if __name__ == "__main__":
     main()
