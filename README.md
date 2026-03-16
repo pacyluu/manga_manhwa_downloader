@@ -82,3 +82,5 @@ python -m manga_downloader.main
 ```
 
 ### Demo
+
+![Image](https://github.com/user-attachments/assets/174fb7fb-c56a-42b7-85c0-9b8a1440f743)
