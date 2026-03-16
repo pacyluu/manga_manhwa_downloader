@@ -64,7 +64,6 @@ Clone the repository:
 git clone https://github.com/yourusername/your-repo-name.git
 cd your-repo-name
 ```
-### Next Steps
 
 Create and activate a virtual environment:
 ```
