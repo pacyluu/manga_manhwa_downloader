@@ -4,6 +4,7 @@ from scrapling.fetchers import StealthyFetcher
 #return the response.text
 def fetch_url(session, url: str) -> Response:
     page = session.fetch(url)
+    print(page.request_headers)
     if page.status == 200:
         return page
 

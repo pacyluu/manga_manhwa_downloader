@@ -3,29 +3,23 @@ import re
 from scrapling.engines.toolbelt.custom import Response
 
 def parse_search_page(page: Response):
-    links = page.css("div.bsx a")
+    links = page.css("h3.h4 a")
     urls = [link.attrib['href'] for link in links]
-
-    links = page.css("div.tt")
     titles = [link.text for link in links]
 
     return list(zip(titles, urls))
 
 def parse_limit(page: Response):
-    result = page.css("span.epcur.epcurlast").get()
+    result = page.css("li.wp-manga-chapter     a").get()
     match = re.search(r"\d+", str(result))
     return int(match.group())
 
 def parse_chapter(page: Response):
-    links = page.css('p img[src*=image]')
+    links = page.css("div.page-break.no-gaps img")
     return [link.attrib['src'] for link in links]
 
 def get_search_url(query: str):
-    return f"https://asurascanz.com/?s={query}"
+    return f"https://kunmanga.com/?s={query}&post_type=wp-manga&op=&author=&artist=&release=&adult="
 
 def get_chapter_url(chapter: int, url: str):
-    url = url[:-1]  
-    x = url.split('/')
-    del x[3]
-    url = "/".join(x)
-    return f"{url}-chapter-{chapter}"
+    return f"{url}chapter-{chapter}/"

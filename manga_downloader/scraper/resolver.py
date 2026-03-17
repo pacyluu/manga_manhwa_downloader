@@ -1,37 +1,14 @@
-from manga_downloader.sites import site1, site2, site3
+from manga_downloader.sites import site1, site2, site3, site4
    
 
 def resolve_site(site: str):
     if "asurascanz" in site:
-        return (site1.parse_search_page, site1.parse_limit, site1.parse_chapter)
+        return (site1.parse_search_page, site1.parse_limit, site1.parse_chapter,site1.get_search_url,site1.get_chapter_url)
     elif "asuracomic" in site:
-        return (site2.parse_search_page, site2.parse_limit, site2.parse_chapter)
+        return (site2.parse_search_page, site2.parse_limit, site2.parse_chapter,site2.get_search_url,site2.get_chapter_url)
     elif "roliascan" in site:
-        return (site3.parse_chapter)
-    else:
-        raise ValueError("Unsupported site")
-
-def resolve_search(site: str, query: str):
-    if "asurascanz" in site:
-        return f"https://asurascanz.com/?s={query}"
-    elif "asuracomic" in site:
-        return f"https://asuracomic.net/series?page=1&name={query}"
-    elif "roliascan" in site:
-        return 
-    else:
-        raise ValueError("Unsupported site")
-    
-def resolve_chapter(site: str, chapter: int, url: str):
-    if "asurascanz" in site:
-        url = url[:-1]
-        x = url.split('/')
-        del x[3]
-        url = "/".join(x)
-        return f"{url}-chapter-{chapter}"
-    
-    elif "asuracomic" in site:
-        return f"{url}/chapter/{chapter}"
-    elif "roliascan" in site:
-        return 
+        return (site3.parse_search_page, site3.parse_limit, site3.parse_chapter,site3.get_search_url,site3.get_chapter_url)
+    elif "kunmanga" in site:
+        return (site4.parse_search_page, site4.parse_limit, site4.parse_chapter,site4.get_search_url,site4.get_chapter_url)
     else:
         raise ValueError("Unsupported site")

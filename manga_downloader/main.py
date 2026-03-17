@@ -1,19 +1,16 @@
 import logging
 from pathlib import Path
-
 from scrapling.fetchers import StealthySession
 from manga_downloader.config import OUTPUT_DIR
 from manga_downloader.scraper.fetch import fetch_url, fetch_imgs
-from manga_downloader.scraper.resolver import (
-    resolve_site,
-    resolve_search,
-    resolve_chapter,
-)
+from manga_downloader.scraper.resolver import resolve_site
 from manga_downloader.scraper.generator import save_pdf
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt, IntPrompt
 from rich.progress import Progress
+from urllib.parse import quote_plus
+
 
 console = Console()
 
@@ -29,6 +26,7 @@ def choose_site() -> str:
         1: "asurascanz",
         2: "asuracomic",
         3: "roliascan",
+        4: "kunmanga"
     }
 
     table = Table(title="Choose a Site")
@@ -56,7 +54,7 @@ def get_user_text() -> str:
         text = Prompt.ask("Enter your search text").strip()
         if text:
             console.print(f"[green]Searching for:[/green] {text}\n")
-            return text
+            return quote_plus(text)
         console.print("[red]Search text cannot be empty.[/red]")
 
 
@@ -162,13 +160,13 @@ def choose_output_folder(output_dir: Path, default_name: str) -> Path:
 
 
 def main():
-    logging.getLogger("scrapling").disabled = True
+    # logging.getLogger("scrapling").disabled = True
 
     site = choose_site()
     query = get_user_text()
 
-    search_parser_fn, limit_parser_fn, chapter_parser_fn = resolve_site(site)
-    search_page = resolve_search(site, query)
+    search_parser_fn, limit_parser_fn, chapter_parser_fn, search_url_fn, chapter_url_fn = resolve_site(site)
+    search_page = search_url_fn(query)
 
     with StealthySession(
         headless=True,
@@ -177,12 +175,11 @@ def main():
         solve_cloudflare=True,
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
     ) as session:
+        
+        fetch_url(session, "https://roliascan.com/")
 
         search_results = search_parser_fn(fetch_url(session, search_page))
         selected_title, selected_url = choose_result(search_results)
-
-        if not selected_url:
-            return
 
         output_folder = choose_output_folder(OUTPUT_DIR, selected_title)
 
@@ -193,7 +190,7 @@ def main():
             task = progress.add_task("Downloading chapters...", total=end - start + 1)
 
             for i in range(start, end + 1):
-                chapter_page = resolve_chapter(site, i, selected_url)
+                chapter_page = chapter_url_fn(i, selected_url)
                 images = chapter_parser_fn(fetch_url(session, chapter_page))
                 raw_images = fetch_imgs(session, images)
                 save_pdf(raw_images, i, output_folder)

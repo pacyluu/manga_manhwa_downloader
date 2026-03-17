@@ -21,3 +21,9 @@ def parse_chapter(page: Response):
     links = page.css('div.w-full.mx-auto.center img')
     return [link.attrib['src'] for link in links]
     
+def get_search_url(query: str):
+    return f"https://asuracomic.net/series?page=1&name={query}"
+
+
+def get_chapter_url(chapter: int, url: str):
+    return f"{url}/chapter/{chapter}"
