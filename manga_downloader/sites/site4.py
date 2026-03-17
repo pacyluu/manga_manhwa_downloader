@@ -1,4 +1,4 @@
-# https://asurascanz.com/
+# kunmanga
 import re
 from scrapling.engines.toolbelt.custom import Response
 

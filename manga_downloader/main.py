@@ -11,15 +11,12 @@ from rich.prompt import Prompt, IntPrompt
 from rich.progress import Progress
 from urllib.parse import quote_plus
 
-
 console = Console()
-
 
 def sanitize_folder_name(name: str) -> str:
     invalid_chars = '<>:"/\\|?*'
     cleaned = "".join("_" if ch in invalid_chars else ch for ch in name).strip()
     return cleaned or "download"
-
 
 def choose_site() -> str:
     sites = {
@@ -80,7 +77,6 @@ def choose_result(results):
             return title, url
         console.print(f"[red]Please enter a number between 1 and {len(results)}.[/red]")
 
-
 def choose_range(limit):
     if limit is None:
         raise ValueError("choose_range received None for limit")
@@ -104,7 +100,6 @@ def choose_range(limit):
 
         console.print(f"[green]Selected chapters:[/green] {start} to {end}\n")
         return start, end
-
 
 def choose_output_folder(output_dir: Path, default_name: str) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -158,26 +153,23 @@ def choose_output_folder(output_dir: Path, default_name: str) -> Path:
         console.print(f"[green]Created and using folder:[/green] {selected_folder.name}\n")
         return selected_folder
 
-
 def main():
-    # logging.getLogger("scrapling").disabled = True
+    logging.getLogger("scrapling").disabled = True
 
     site = choose_site()
     query = get_user_text()
 
-    search_parser_fn, limit_parser_fn, chapter_parser_fn, search_url_fn, chapter_url_fn = resolve_site(site)
+    search_parser_fn, limit_parser_fn, chapter_parser_fn, search_url_fn, chapter_url_fn, head = resolve_site(site)
     search_page = search_url_fn(query)
 
     with StealthySession(
-        headless=True,
+        headless=head,
         real_chrome=True,
         block_webrtc=True,
         solve_cloudflare=True,
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
     ) as session:
         
-        fetch_url(session, "https://roliascan.com/")
-
         search_results = search_parser_fn(fetch_url(session, search_page))
         selected_title, selected_url = choose_result(search_results)
 
@@ -196,7 +188,6 @@ def main():
                 save_pdf(raw_images, i, output_folder)
 
                 progress.update(task, advance=1)
-
 
 if __name__ == "__main__":
     main()

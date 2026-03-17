@@ -34,9 +34,12 @@ The application follows a straightforward pipeline:
 
 ## Supported Sources
 
-- Asurascanz
-- Asuracomic
-- Roliascan (WIP)
+- Asurascanz ✅
+- Asuracomic ✅
+- Roliascan (works only headful) :construction:
+- Kunmanga (works only headful) :construction:
+
+If you have any requests to make, don't hesitate to contact me
 
 ## Tech Stack
 

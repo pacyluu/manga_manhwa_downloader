@@ -1,4 +1,4 @@
-# https://roliascan.com/
+# https://roliascan.com/ headless=false
 from scrapling.engines.toolbelt.custom import Response
 import re
 
