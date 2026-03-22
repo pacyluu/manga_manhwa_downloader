@@ -163,7 +163,7 @@ def main():
     search_page = search_url_fn(query)
 
     with StealthySession(
-        headless=head,
+        headless=False,
         real_chrome=True,
         block_webrtc=True,
         solve_cloudflare=True,
