@@ -90,3 +90,5 @@ python -m manga_downloader.main
 ### Output
 
 In your project directory, downloads will be located in the downloads folder in their respective folder
+
+![Image](https://github.com/user-attachments/assets/4d009def-cd7e-4a0d-b4bf-0e6d0cf7e9fb)
