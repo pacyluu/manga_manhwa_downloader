@@ -1,5 +1,6 @@
 # https://roliascan.com/ headless=false
 from scrapling.engines.toolbelt.custom import Response
+from urllib.parse import quote_plus
 import re
 
 def parse_search_page(page: Response):
@@ -19,7 +20,7 @@ def parse_chapter(page: Response):
     return [link.attrib['src'] for link in links]
 
 def get_search_url(query: str):
-    return f"https://roliascan.com/?s={query}&asp_active=1&p_asid=1&p_asp_data=1&asp_gen[]=title&asp_gen[]=exact&filters_initial=1&filters_changed=0&qtranslate_lang=0&current_page_id=-1"
+    return f"https://roliascan.com/?s={quote_plus(query)}&asp_active=1&p_asid=1&p_asp_data=1&asp_gen[]=title&asp_gen[]=exact&filters_initial=1&filters_changed=0&qtranslate_lang=0&current_page_id=-1"
 
 def get_chapter_url(chapter: int, url: str):
     return f"{url}chapter/{chapter}"

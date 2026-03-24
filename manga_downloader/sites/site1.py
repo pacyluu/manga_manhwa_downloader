@@ -1,5 +1,6 @@
 # https://asurascanz.com/
 import re
+from urllib.parse import quote_plus
 from scrapling.engines.toolbelt.custom import Response
 
 def parse_search_page(page: Response):
@@ -21,7 +22,7 @@ def parse_chapter(page: Response):
     return [link.attrib['src'] for link in links]
 
 def get_search_url(query: str):
-    return f"https://asurascanz.com/?s={query}"
+    return f"https://asurascanz.com/?s={quote_plus(query)}"
 
 def get_chapter_url(chapter: int, url: str):
     url = url[:-1]  

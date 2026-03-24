@@ -1,5 +1,6 @@
 # kunmanga
 import re
+from urllib.parse import quote_plus
 from scrapling.engines.toolbelt.custom import Response
 
 def parse_search_page(page: Response):
@@ -19,7 +20,7 @@ def parse_chapter(page: Response):
     return [link.attrib['src'] for link in links]
 
 def get_search_url(query: str):
-    return f"https://kunmanga.com/?s={query}&post_type=wp-manga&op=&author=&artist=&release=&adult="
+    return f"https://kunmanga.com/?s={quote_plus(query)}&post_type=wp-manga&op=&author=&artist=&release=&adult="
 
 def get_chapter_url(chapter: int, url: str):
     return f"{url}chapter-{chapter}/"

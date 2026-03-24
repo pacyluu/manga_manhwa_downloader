@@ -9,7 +9,6 @@ from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt, IntPrompt
 from rich.progress import Progress
-from urllib.parse import quote_plus
 
 console = Console()
 
@@ -21,7 +20,7 @@ def sanitize_folder_name(name: str) -> str:
 def choose_site() -> str:
     sites = {
         1: "asurascanz",
-        2: "asuracomic",
+        2: "asurascans",
         3: "roliascan",
         4: "kunmanga"
     }
@@ -51,7 +50,7 @@ def get_user_text() -> str:
         text = Prompt.ask("Enter your search text").strip()
         if text:
             console.print(f"[green]Searching for:[/green] {text}\n")
-            return quote_plus(text)
+            return text.strip()
         console.print("[red]Search text cannot be empty.[/red]")
 
 
@@ -163,7 +162,7 @@ def main():
     search_page = search_url_fn(query)
 
     with StealthySession(
-        headless=False,
+        headless=head,
         real_chrome=True,
         block_webrtc=True,
         solve_cloudflare=True,
@@ -184,6 +183,7 @@ def main():
             for i in range(start, end + 1):
                 chapter_page = chapter_url_fn(i, selected_url)
                 images = chapter_parser_fn(fetch_url(session, chapter_page))
+                print(images)
                 raw_images = fetch_imgs(session, images)
                 save_pdf(raw_images, i, output_folder)
 
