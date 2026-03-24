@@ -6,13 +6,15 @@ import re
 def parse_search_page(page: Response):
     links = page.css("div.p-3 a")
     urls = [link.attrib['href'] for link in links]
+    print(urls)
     for i in range(len(urls)):
         urls[i] = "https://asurascans.com" + urls[i]
 
     links = page.css("h3.text-sm.font-semibold.text-white.line-clamp-1.group-hover\\:text-\\[\\#913FE2\\].transition-colors")
     titles = [link.text for link in links]
 
-    return list(zip(titles, urls))
+    results = list(zip(titles, urls))
+    return results[:len(results)//2]
 
 def parse_limit(page: Response):
     result = page.css("h2.text-lg.font-bold")[0].text
